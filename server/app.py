@@ -44,7 +44,7 @@ def show_article(id):
     session['page_views'] += 1
 
     if session['page_views'] <= 3:
-        article = Article.query.get(id)
+        article = db.session.get(Article, id)
         if not article:
             return {'message': 'Article not found'}, 404
         return {
