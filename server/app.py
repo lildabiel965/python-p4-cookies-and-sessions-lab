@@ -22,13 +22,53 @@ def clear_session():
 
 @app.route('/articles')
 def index_articles():
-
-    pass
+    articles = Article.query.all()
+    return jsonify({
+        'articles': [
+            {
+                'id': a.id,
+                'author': a.author,
+                'title': a.title,
+                'preview': a.preview,
+                'minutes_to_read': a.minutes_to_read,
+                'date': a.date.isoformat()
+            } for a in articles
+        ]
+    }), 200
 
 @app.route('/articles/<int:id>')
 def show_article(id):
+    if 'page_views' not in session:
+        session['page_views'] = 0
 
-    pass
+    session['page_views'] += 1
+
+    if session['page_views'] <= 3:
+        article = Article.query.get(id)
+        if not article:
+            return {'message': 'Article not found'}, 404
+        return {
+            'id': article.id,
+            'author': article.author,
+            'title': article.title,
+            'content': article.content,
+            'preview': article.preview,
+            'minutes_to_read': article.minutes_to_read,
+            'date': article.date.isoformat()
+        }, 200
+    else:
+        return {'message': 'Maximum pageview limit reached'}, 401
+
+@app.route('/')
+def index():
+    return jsonify({
+        'message': 'Welcome to the Blog API',
+        'endpoints': {
+            'articles': '/articles',
+            'article': '/articles/<id>',
+            'clear': '/clear'
+        }
+    }), 200
 
 if __name__ == '__main__':
     app.run(port=5555)
